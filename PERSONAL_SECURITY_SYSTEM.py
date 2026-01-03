@@ -1597,7 +1597,7 @@ def attempt_special_mission(player, world, mission_id):
             "trace_speed": 5.6,
             "hours": 48,
             "narrative": (
-                "Você invade um conjunto de sondas nos limites do sistema solar.\n"
+                "Você invade um conjunto de sondas interestelares.\n"
                 "No meio de ruído cósmico, uma frase aparece:\n"
                 "'Chegou a hora. Devemos conversar.'\n"
                 "Algo que não é humano — mas que te conhece — deseja um encontro."
