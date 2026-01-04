@@ -1,4 +1,4 @@
-# PERSONAL_SECURITY_SYSTEM - ver. 0.9.1-beta ~~ Desenvolvido pelo Bandeirinha
+# PERSONAL_SECURITY_SYSTEM - ver. 0.9.2-beta ~~ Desenvolvido pelo Bandeirinha
                                                                                                     
                                                                                                     
                                                                                                     
@@ -103,11 +103,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Decidi deixar o jogo em copyleft primeiro porque tudo começou como uma oportunidade para interagir com técnicas relativamente mais complexas dentro da linguagem Python. É um projeto para fins educacionais e de entretenimento. Segundo porque provavelmente não terei tempo até deixar o jogo como eu gostaria, pois a minha saúde física e mental estão atualmente péssimas. Mas já fico imensamente satisfeito de ter conseguido publicar uma versão beta pelo menos... Então contarei com a comunidade Open Source para corrigir, melhorar, expandir e espalhar este worm. 
 
     
-## ATUALIZAÇÃO 20/12/2025 (ver. 0.9.1-beta):
+## ATUALIZAÇÃO 20/12/2025 (ver. 0.9.2-beta):
 
-- Imposição de limites para jobs e study, exigindo mínimo de foco necessário.
+- Definição de eventos dinâmicos por reputação
+    
+    "def check_reputation_events(player, world):"
 
-- Um clear_screen() implementado ao iniciar o jogo
+    
+- Polimento durante cmd_scan(), sem duplicar nomes de regiões:
+    
+    Alteração: Comentado no final da função
+
+    def _make_random_target(self, region, diff):
+        tid = self.next_tid
+        self.next_tid += 1
+        security = max(1, min(30, int(round(random.gauss(diff * 1.8, 1.5)))))
+        reward = int(50 * (security ** 1.6) * random.uniform(0.6, 1.4))
+        trace_speed = max(0.4, random.uniform(0.5, 1.5) * (1 + (security - 1) * 0.08))
+        name = random.choice([
+            "Servidor universitário", "Empresa média", "Data center pequeno",
+            "Banco local", "Serviço de e-mail", "Operadora", "Cloud node", "Nó IoT"
+        ]) >>>># + f" ({region})"<<<< desmarcar comentário para retornar
+
+        
+- Feedback de missões simplificada, agora sem duplicação de mensagens de eventos e missões
 
 ---
 

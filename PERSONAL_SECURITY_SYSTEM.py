@@ -1,14 +1,33 @@
 #!/usr/bin/env python3
 """
-# PERSONAL_SECURITY_SYSTEM - ver. 0.9.1-beta
+# PERSONAL_SECURITY_SYSTEM - ver. 0.9.2-beta
 # Copyright (C) 2025 Bandeirinha
 # Licensed under the GNU GPL v3.0 or later
 
 NOTAS DE ATUALIZAÇÃO:
 
-- Imposição de limites para jobs e study, exigindo mínimo de foco necessário.
+- Definição de eventos dinâmicos por reputação
 
-- Um clear_screen() implementado ao iniciar o jogo
+    "def check_reputation_events(player, world):"
+
+
+- Polimento durante cmd_scan(), sem duplicar nomes de regiões:
+
+    Alteração: Comentado no final da função
+
+    def _make_random_target(self, region, diff):
+        tid = self.next_tid
+        self.next_tid += 1
+        security = max(1, min(30, int(round(random.gauss(diff * 1.8, 1.5)))))
+        reward = int(50 * (security ** 1.6) * random.uniform(0.6, 1.4))
+        trace_speed = max(0.4, random.uniform(0.5, 1.5) * (1 + (security - 1) * 0.08))
+        name = random.choice([
+            "Servidor universitário", "Empresa média", "Data center pequeno",
+            "Banco local", "Serviço de e-mail", "Operadora", "Cloud node", "Nó IoT"
+        ]) >>>># + f" ({region})"<<<< desmarcar comentário para retornar
+
+
+- Feedback de missões simplificada, agora sem duplicação de mensagens de eventos e missões
 
 """
 
@@ -64,6 +83,10 @@ class Player:
         self.local_alerts = deque(maxlen=200)  # mensagens importantes recebidas
         self.region = "NorthAmerica"  # região onde o jogador está baseado/inicialmente
         self.next_job_state_time = None
+        self.reputation_events_triggered = set()
+        self.unlocked_jobs = set()
+
+
 
     def record_enemy_fingerprint(self, ai):
         fp = ai.fingerprint
@@ -168,6 +191,31 @@ class World:
         self.last_alerts = deque(maxlen=500)
         self.ai_activity_logs = []     # feedback textual das IAs (novo, antes logs indefinido)
         self.generate_daily_targets()
+
+        # Definição de eventos por reputação
+        self.reputation_events_def = {
+            "hacktivists_event1": {
+                "min_rep": {"hacktivists": 5},
+                "once": True,
+            },
+            "hacktivists_event2": {
+                "min_rep": {"hacktivists": 10},
+                "once": True,
+            },
+            "crime_event1": {
+                "min_rep": {"crime": 8},
+                "once": True,
+            },
+            "crime_event2": {
+                "min_rep": {"crime": 15},
+                "once": True,
+            },
+            "state_event1": {
+                "min_rep": {"state": 15},
+                "once": True,
+            },
+        }
+
         # Definição completa das missões especiais
         self.missions_def = {
             # ===========================
@@ -484,7 +532,7 @@ class World:
         name = random.choice([
             "Servidor universitário", "Empresa média", "Data center pequeno",
             "Banco local", "Serviço de e-mail", "Operadora", "Cloud node", "Nó IoT"
-        ]) + f" ({region})"
+        ]) # + f" ({region})"
 
         if security <= 2:
             hints = ["porta 22 aberta", "login fraco"]
@@ -693,12 +741,14 @@ class World:
             player.reputation["state"] += gained_state
             player.reputation["hacktivists"] += gained_hx
             self.last_alerts.append((self.day, f"IA Pirata ({ai.uid}) removida. Reputação: state +{gained_state}, hacktivists +{gained_hx}."))
+            check_reputation_events(player, world)
         elif typ == "Federal":
             gained_crime = random.randint(1, 3)
             gained_hx = random.randint(1, 2)
             player.reputation["crime"] += gained_crime
             player.reputation["hacktivists"] += gained_hx
             self.last_alerts.append((self.day, f"IA Federal ({ai.uid}) removida. Reputação: crime +{gained_crime}, hacktivists +{gained_hx}."))
+            check_reputation_events(player, world)
         elif typ == "Hacktivista":
             gained_crime = random.randint(1, 3)
             gained_state = random.randint(1, 3)
@@ -707,9 +757,12 @@ class World:
             player.reputation["state"] += gained_state
             player.reputation["hacktivists"] += gained_hx
             self.last_alerts.append((self.day, f"IA Hacktivista ({ai.uid}) neutralizada. Reputação: hacktivists +{gained_hx}."))
+            check_reputation_events(player, world)
         else:
             player.reputation["hacktivists"] += 1
             self.last_alerts.append((self.day, f"IA genérica ({ai.uid}) removida. Reputação hacktivists +1."))
+            check_reputation_events(player, world)
+
 
 
 # -------------------- Enemy AI --------------------
@@ -949,6 +1002,7 @@ def attempt_hack(player, target, world):
             f"\nSucesso! Ganhou ${reward:.2f} e conhecimento (+{gained_knowledge})."
             f"\nReputação: crime +1, state -1."
         )
+        check_reputation_events(player, world)
 
         # detecção pós-sucesso
         if random.random() < 0.22 * target.trace_speed:
@@ -970,6 +1024,7 @@ def attempt_hack(player, target, world):
         player.reputation["state"] = max(0, player.reputation["state"] - 1)
 
         message += "\nReputação: crime +1, state -1."
+        check_reputation_events(player, world)
 
         if random.random() < 0.45 * target.trace_speed:
             detected = True
@@ -1032,6 +1087,7 @@ def apply_trace(player, target):
     # reputação sempre: rastreamento = atividade criminosa detectada
     player.reputation["crime"] += 1
     player.reputation["state"] = max(0, player.reputation["state"] - 1)
+    check_reputation_events(player, world)
 
     # -------------------------
     # PRISÃO OU MULTA PESADA
@@ -1061,6 +1117,8 @@ def apply_trace(player, target):
             f"Risco atual: {player.risk:.1f}%.\n"
             f"Reputação: crime +1, state -1."
         )
+        check_reputation_events(player, world)
+
 
     # -------------------------
     # EVASÃO (custo leve)
@@ -1078,12 +1136,14 @@ def apply_trace(player, target):
         f"Risco atual: {player.risk:.1f}%.\n"
         f"Reputação: crime +1, state -1."
     )
+    check_reputation_events(player, world)
+
 
 # está duplicando alerta, mas preservar por enquanto
 def notify(player, world, message, console=True):
     world.last_alerts.append((world.day, message))
-    if console:
-        print(f"\n[ALERTA] {message}")
+#    if console:
+#        print(f"\n[ALERTA] {message}\n")
 
 
 def check_reputation_unlocks(player, world):
@@ -1100,11 +1160,11 @@ def check_reputation_unlocks(player, world):
     unlocked_now = list(after - before)
     removed_now = list(before - after)
 
-    for mid in unlocked_now:
-        notify(player, world, f"Missão especial disponível: {mid}")
+#    for mid in unlocked_now:
+#        notify(player, world, f"Missão especial disponível: {mid}")
 
-    for mid in removed_now:
-        notify(player, world, f"Missão especial removida: {mid}")
+#    for mid in removed_now:
+#        notify(player, world, f"Missão especial removida: {mid}")
 
     return unlocked_now
 
@@ -1164,6 +1224,29 @@ def trigger_reputation_event(player, world, event):
         msg += "\nMissões liberadas: " + ", ".join(new_unlocks)
 
     return msg
+
+    check_reputation_events(player, world)
+
+
+def check_reputation_events(player, world):
+    events = world.reputation_events_def
+
+    for eid, data in events.items():
+        # já disparado?
+        if eid in player.reputation_events_triggered:
+            continue
+
+        # requisitos AND
+        req = data.get("min_rep", {})
+        if not all(player.reputation.get(f, 0) >= v for f, v in req.items()):
+            continue
+
+        # 🔒 MARCA ANTES DE DISPARAR (PATCH CRÍTICO)
+        if data.get("once", True):
+            player.reputation_events_triggered.add(eid)
+
+        # dispara evento
+        trigger_reputation_event(player, world, eid)
 
 
 def visual_mission_roll(chance, player, title):
@@ -1673,6 +1756,8 @@ def attempt_special_mission(player, world, mission_id):
 #            world.last_alerts.append((world.day, f"Nova missão sequencial desbloqueada: {nxt}"))
             msg += f"\nNova missão desbloqueada: {nxt}"
 
+        check_reputation_events(player, world)
+
     else:
         player.focus = max(0, player.focus + data["focus_gain"])
 
@@ -1682,6 +1767,8 @@ def attempt_special_mission(player, world, mission_id):
         notify(player, world, f"Missão especial disponível: {mid}", console=False)
 
     return success, f"\nTentativa: {data['title']} — {msg}"
+
+    check_reputation_events(player, world)
 
 
 def refresh_special_missions(player, world):
@@ -2186,48 +2273,6 @@ def hack_enemy_ai(player, world, ai):
     return msg
 
 
-def cmd_job_state(player, args, world):
-    if player.reputation.get("state", 0) < 15:
-        return "Você ainda não tem confiança suficiente do Estado."
-
-    # Alvo temporário para auditoria
-    class GovAudit:
-        def __init__(self):
-            self.security = 7 + int(player.reputation["state"] / 6)
-            self.reward = 30 + player.reputation["state"] * 3
-            self.trace_speed = 1.7
-
-    target = GovAudit()
-    title = "Auditoria Interna — Setor Classificado"
-
-    print("\n[STATE] Contrato autorizado pelo núcleo sigiloso.\n")
-    visual_mission_roll(calc_hack_chance(player, target), player, title)
-
-    roll = random.random()
-    chance = calc_hack_chance(player, target)
-
-    if roll < chance:
-        player.money += target.reward
-        player.skills["recon"] += 1.4
-        player.skills["exploit"] += 1.4
-        player.reputation["state"] += 2
-
-        return (
-            f"Sucesso! Estado pagou ${target.reward:.2f}.\n"
-            "A vigilância agradece sua colaboração."
-        )
-    else:
-        incr = target.security * (0.8 + random.random())
-        player.risk = min(100.0, player.risk + incr)
-        return (
-            "Falha. Os firewalls internos te estranham.\n"
-            f"Risco aumentado em {incr:.1f}%."
-        )
-
-    hrs = random.randint(4, 8)
-    player.hours_pass(hrs, world)
-
-
 # -------------------- Loja --------------------
 SHOP = {
     "raspberry": {"price": 150.0, "desc": "Hardware barato. +5 exploit"},
@@ -2419,6 +2464,8 @@ def cmd_job(player, world):
     bonus_rep = random.randint(1, 3)
     player.reputation["state"] += bonus_rep
     player.reputation["crime"] = max(0, player.reputation["crime"] - 1)
+    check_reputation_events(player, world)
+
 
     # punição se zerar foco
 #    if player.focus == 0:
@@ -2432,7 +2479,7 @@ def cmd_job(player, world):
 
 
 def cmd_job_state(player, args, world):
-    if player.reputation.get("state", 0) < 25:
+    if player.reputation.get("state", 0) < 15:
         return "Você ainda não tem confiança suficiente do Estado."
 
     # Alvo temporário para auditoria
@@ -2458,8 +2505,9 @@ def cmd_job_state(player, args, world):
         player.focus = min(100, player.focus + 4)
 
         # Estado gosta — crime continua feio
-        player.reputation["state"] += 2
+        player.reputation["state"] += 3
         player.reputation["crime"] += 1
+        check_reputation_events(player, world)
 
         return (
             f"Sucesso! Estado pagou ${target.reward:.2f}.\n"
@@ -2468,10 +2516,17 @@ def cmd_job_state(player, args, world):
     else:
         incr = target.security * (0.8 + random.random())
         player.risk = min(100.0, player.risk + incr)
+
+        # O Estado suspeita de sabotagem
+        player.reputation["state"] += 1
+        player.reputation["crime"] += 3
+        check_reputation_events(player, world)
+
         return (
-            "Falha. Os firewalls internos te estranham.\n"
+            "Falha. Os firewalls internos te estranham.\nAgentes podem suspeitar de você.\n\n"
             f"Risco aumentado em {incr:.1f}%."
         )
+        # aplcação de trace aqui???
 
 
 def cmd_study(player, args, world):
@@ -2625,6 +2680,7 @@ def cmd_travel(player, args, world):
         # pequenas chances de ruído no mundo
         if random.random() < 0.25 and hasattr(world, "last_alerts"):
             player.reputation["crime"] += 1
+            check_reputation_events(player, world)
 
         if hasattr(world, "enemy_ais"):
             world.enemy_ais.clear()
