@@ -1,33 +1,12 @@
 #!/usr/bin/env python3
 """
-# PERSONAL_SECURITY_SYSTEM - ver. 0.9.2-beta
+# PERSONAL_SECURITY_SYSTEM - ver. 0.9.3-beta
 # Copyright (C) 2025 Bandeirinha
 # Licensed under the GNU GPL v3.0 or later
 
 NOTAS DE ATUALIZAÇÃO:
-
-- Definição de eventos dinâmicos por reputação
-
-    "def check_reputation_events(player, world):"
-
-
-- Polimento durante cmd_scan(), sem duplicar nomes de regiões:
-
-    Alteração: Comentado no final da função
-
-    def _make_random_target(self, region, diff):
-        tid = self.next_tid
-        self.next_tid += 1
-        security = max(1, min(30, int(round(random.gauss(diff * 1.8, 1.5)))))
-        reward = int(50 * (security ** 1.6) * random.uniform(0.6, 1.4))
-        trace_speed = max(0.4, random.uniform(0.5, 1.5) * (1 + (security - 1) * 0.08))
-        name = random.choice([
-            "Servidor universitário", "Empresa média", "Data center pequeno",
-            "Banco local", "Serviço de e-mail", "Operadora", "Cloud node", "Nó IoT"
-        ]) >>>># + f" ({region})"<<<< desmarcar comentário para retornar
-
-
 - Feedback de missões simplificada, agora sem duplicação de mensagens de eventos e missões
+    15/01/2026: Notificações de missões corrigidas. Agora respondem conforme reputação.
 
 """
 
@@ -1142,7 +1121,7 @@ def apply_trace(player, target):
 # está duplicando alerta, mas preservar por enquanto
 def notify(player, world, message, console=True):
     world.last_alerts.append((world.day, message))
-#    if console:
+#    if console: # 15/01/2026
 #        print(f"\n[ALERTA] {message}\n")
 
 
@@ -1160,11 +1139,11 @@ def check_reputation_unlocks(player, world):
     unlocked_now = list(after - before)
     removed_now = list(before - after)
 
-#    for mid in unlocked_now:
-#        notify(player, world, f"Missão especial disponível: {mid}")
+    for mid in unlocked_now:
+        notify(player, world, f"Missão especial disponível: {mid}")
 
-#    for mid in removed_now:
-#        notify(player, world, f"Missão especial removida: {mid}")
+    for mid in removed_now:
+        notify(player, world, f"Missão especial removida: {mid}")
 
     return unlocked_now
 
@@ -1753,8 +1732,10 @@ def attempt_special_mission(player, world, mission_id):
         if defn["unlock_next"]:
             nxt = defn["unlock_next"]
             # NÃO adiciona direto ao inventário — deixa reputação decidir
-#            world.last_alerts.append((world.day, f"Nova missão sequencial desbloqueada: {nxt}"))
+            # comentar futuramente !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            world.last_alerts.append((world.day, f"Nova missão sequencial desbloqueada: {nxt}"))
             msg += f"\nNova missão desbloqueada: {nxt}"
+            # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         check_reputation_events(player, world)
 
@@ -1763,8 +1744,8 @@ def attempt_special_mission(player, world, mission_id):
 
     # reputação pode liberar novas missões
     new_unlocks = check_reputation_unlocks(player, world)
-    for mid in new_unlocks:
-        notify(player, world, f"Missão especial disponível: {mid}", console=False)
+#    for mid in new_unlocks:
+#        notify(player, world, f"Missão especial disponível: {mid}", console=False)
 
     return success, f"\nTentativa: {data['title']} — {msg}"
 
@@ -1813,7 +1794,7 @@ def refresh_special_missions(player, world):
         else:
             if mid in player.special_missions_available:
                 player.special_missions_available.remove(mid)
-                world.last_alerts.append((world.day, f"Missão especial removida: {mid}"))
+#                world.last_alerts.append((world.day, f"Missão especial removida: {mid}"))
 
 
 # -------------------- Eventos aleatórios e missões simples --------------------
@@ -2071,7 +2052,7 @@ def cmd_connect(player, args, world):
         lambda name: f"*** Acesso ao Host: {name} ***",
         lambda name: f"[+] Sessão ativa em {name} [+]",
         lambda name: f"<<< {name} - remote shell >>>",
-        lambda name: f"SSH-2.0-OpenSSH_8.4 - Host: {name}",
+        lambda name: f"SSH-7.0-OpenSSH_18.4 - Host: {name}",
         lambda name: f"## Conexão com {name} estabelecida ##",
         lambda name: f"<-- Remote Node: {name} -->"
     ]
