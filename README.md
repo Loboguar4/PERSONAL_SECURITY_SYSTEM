@@ -67,8 +67,7 @@ Decidi deixar o jogo em copyleft primeiro porque tudo começou como uma oportuni
 
     if "botnet_worm" in player.inventory:
         chance = min(0.7, chance + 0.08)
-
->>> para >>>
+para:
 
     if "botnet_worm" in player.inventory:
         chance = min(0.7, chance + 0.18)
