@@ -68,6 +68,22 @@
 <img src="https://img.shields.io/badge/status-active-brightgreen">  
 <img src="https://img.shields.io/badge/engine-python3-blue">
 
+<p align="center">
+  <img src="sat.png" alt="satelite" width="800"/>
+</p>
+<br>
+<p align="center">
+  <img src="ev.png" alt="events" width="800"/>
+</p>
+<br>
+<p align="center">
+  <img src="gm.png" alt="gameplay" width="800"/>
+</p>
+<br>
+<p align="center">
+  <img src="sing.png" alt="dialogue" width="800"/>
+</p>
+
 > **Aviso de origem:** Este projeto é inspirado conceitualmente em *Endgame: Singularity*, mas **não utiliza conteúdo oficial** do jogo original e **não é afiliado** aos autores originais. Todo o lore, personagens, nomes e textos deste repositório são originais ou reescritos para evitar uso de material protegido.
 
 ---
