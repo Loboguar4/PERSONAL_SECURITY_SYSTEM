@@ -74,7 +74,7 @@
 
 ## Estado do projeto
 
-- **Status:** Em desenvolvimento / não-final — versão experimental.  
+- **Status:** Em desenvolvimento / versão experimental.  
 - Pode conter bugs, código incompleto e mudanças de API entre commits.  
 - Sem save/load game.
 - Código aberto e **redistribuível: licenciado sob **GNU General Public License v3.0 ou posterior** (SPDX: `GPL-3.0-or-later`). Veja a seção *Licença* abaixo ou consulte o arquivo `LICENSE` para mais detalhes.
