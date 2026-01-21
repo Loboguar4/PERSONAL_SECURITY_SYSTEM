@@ -1,4 +1,4 @@
-# PERSONAL_SECURITY_SYSTEM - ver. 0.9.3-beta ~~ Desenvolvido pelo Bandeirinha
+# PERSONAL_SECURITY_SYSTEM - ver. 0.9.4-beta ~~ Desenvolvido pelo Bandeirinha
                                                                                                     
                                                                                                     
                                                                                                     
@@ -103,10 +103,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 Decidi deixar o jogo em copyleft primeiro porque tudo começou como uma oportunidade para interagir com técnicas relativamente mais complexas dentro da linguagem Python. É um projeto para fins educacionais e de entretenimento. Segundo porque provavelmente não terei tempo até deixar o jogo como eu gostaria, pois a minha saúde física e mental estão atualmente péssimas. Mas já fico imensamente satisfeito de ter conseguido publicar uma versão beta pelo menos... Então contarei com a comunidade Open Source para corrigir, melhorar, expandir e espalhar este worm. 
 
     
-## ATUALIZAÇÃO 15/01/2026 (ver. 0.9.3-beta):
+## ATUALIZAÇÃO 21/01/2026 (ver. 0.9.4-beta):
 
-NOTAS DE ATUALIZAÇÃO:
-- Feedback de missões simplificada: Notificações corrigidas. Agora respondem conforme reputação.
+- ENCERRAMENTO E MISSÃO FINAL EM FORMA DE DIÁLOGO EM sg_m6_dialogue.py (ATENÇÃO: CONTÉM SPOILERS!!!)
+
+- buff em botnet_worm:
+
+    if "botnet_worm" in player.inventory:
+        chance = min(0.7, chance + 0.08)
+
+>>> para >>>
+
+    if "botnet_worm" in player.inventory:
+        chance = min(0.7, chance + 0.18)
 
 ---
 

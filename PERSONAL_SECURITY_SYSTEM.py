@@ -1,13 +1,36 @@
 #!/usr/bin/env python3
 """
-# PERSONAL_SECURITY_SYSTEM - ver. 0.9.3-beta
+# PERSONAL_SECURITY_SYSTEM - ver. 0.9.4-beta
 # Copyright (C) 2025 Bandeirinha
 # Licensed under the GNU GPL v3.0 or later
 
 NOTAS DE ATUALIZAÇÃO:
-- Feedback de missões simplificada, agora sem duplicação de mensagens de eventos e missões
-    15/01/2026: Notificações de missões corrigidas. Agora respondem conforme reputação.
 
+- ENCERRAMENTO E MISSÃO FINAL EM FORMA DE DIÁLOGO EM sg_m6_dialogue.py (ATENÇÃO: CONTÉM SPOILERS!!!)
+
+- buff em botnet_worm:
+
+    if "botnet_worm" in player.inventory:
+        chance = min(0.7, chance + 0.08)
+
+>>> para >>>
+
+    if "botnet_worm" in player.inventory:
+        chance = min(0.7, chance + 0.18)
+
+
+TASKS EM ANDAMENTO:
+
+- Adicionar gameovers fatais (que causam a morte do personagem, não somente a prisão)
+
+- Substituir "jailed" no código por "wanted"
+    Manter lógica mas alterar conceitualmente já que não há mais sistema de prisão temporária
+
+- Dinamizar sistema econômico conforme flutuações faccionais
+- Aprimorar sistema de compra:
+    👉 buy max
+    👉 buy all rack regionA
+    👉 buy rack until $5000
 """
 
 import time
@@ -18,6 +41,7 @@ import hashlib
 import os
 from collections import deque
 from datetime import datetime, timedelta
+from sg_m6_dialogue import dialogue_sg_m6
 
 # Configurações globais
 GAME_OVER_ON_JAIL = True
@@ -44,6 +68,7 @@ class Player:
         self.focus = 100.0
         self.ritaline_pills = 0
         self.ritaline_addiction = 0.0  # 0 a 100, chance de vício
+        self.ritaline_addicted = False
         self.time = START_DATE
         self.skills = {"recon": 1.0, "exploit": 1.0, "stealth": 1.0}
         self.risk = 0.0  # risco individual (mantido fora dos metadados regionais)
@@ -64,7 +89,6 @@ class Player:
         self.next_job_state_time = None
         self.reputation_events_triggered = set()
         self.unlocked_jobs = set()
-
 
 
     def record_enemy_fingerprint(self, ai):
@@ -108,6 +132,10 @@ class Player:
 
         # Decaimento do vício
         self.ritaline_addiction = max(0.0, self.ritaline_addiction - hrs * 0.12)
+
+        # Blindagem: viciado nunca pode ter vício zerado sem passar pela cura
+        if self.ritaline_addicted:
+            self.ritaline_addiction = max(self.ritaline_addiction, 1.0)
 
         # Se vício chegou a zero → cura da dependência
         if addicted and self.ritaline_addiction <= 0:
@@ -174,23 +202,23 @@ class World:
         # Definição de eventos por reputação
         self.reputation_events_def = {
             "hacktivists_event1": {
-                "min_rep": {"hacktivists": 5},
-                "once": True,
-            },
-            "hacktivists_event2": {
                 "min_rep": {"hacktivists": 10},
                 "once": True,
             },
+            "hacktivists_event2": {
+                "min_rep": {"hacktivists": 20},
+                "once": True,
+            },
             "crime_event1": {
-                "min_rep": {"crime": 8},
+                "min_rep": {"crime": 18},
                 "once": True,
             },
             "crime_event2": {
-                "min_rep": {"crime": 15},
+                "min_rep": {"crime": 25},
                 "once": True,
             },
             "state_event1": {
-                "min_rep": {"state": 15},
+                "min_rep": {"state": 25},
                 "once": True,
             },
         }
@@ -201,27 +229,27 @@ class World:
             # HACKTIVISTS — ROTAS DA VERDADE
             # ===========================
             "hx_m1": {
-                "min_rep": {"hacktivists": 6},
+                "min_rep": {"hacktivists": 6}, #6
                 "unlock_next": "hx_m2",
             },
             "hx_m2": {
-                "min_rep": {"hacktivists": 10},
+                "min_rep": {"hacktivists": 10}, #10
                 "unlock_next": "hx_m3",
             },
             "hx_m3": {
-                "min_rep": {"hacktivists": 14},
+                "min_rep": {"hacktivists": 14}, #14
                 "unlock_next": "hx_m4",
             },
             "hx_m4": {
-                "min_rep": {"hacktivists": 19},
+                "min_rep": {"hacktivists": 19}, #19
                 "unlock_next": "hx_m5",
             },
             "hx_m5": {
-                "min_rep": {"hacktivists": 25},
+                "min_rep": {"hacktivists": 25}, #25
                 "unlock_next": "hx_m6",
             },
             "hx_m6": {
-                "min_rep": {"hacktivists": 33},
+                "min_rep": {"hacktivists": 33}, #33
                 "unlock_next": None,
             },
 
@@ -229,27 +257,27 @@ class World:
             # CRIME — ROTA DA CORRUPÇÃO DIGITAL
             # ===========================
             "cr_m1": {
-                "min_rep": {"crime": 9},
+                "min_rep": {"crime": 9}, #9
                 "unlock_next": "cr_m2",
             },
             "cr_m2": {
-                "min_rep": {"crime": 15},
+                "min_rep": {"crime": 15}, #15
                 "unlock_next": "cr_m3",
             },
             "cr_m3": {
-                "min_rep": {"crime": 21},
+                "min_rep": {"crime": 21}, #16
                 "unlock_next": "cr_m4",
             },
             "cr_m4": {
-                "min_rep": {"crime": 28},
+                "min_rep": {"crime": 28}, #28
                 "unlock_next": "cr_m5",
             },
             "cr_m5": {
-                "min_rep": {"crime": 36},
+                "min_rep": {"crime": 36}, #36
                 "unlock_next": "cr_m6",
             },
             "cr_m6": {
-                "min_rep": {"crime": 45},
+                "min_rep": {"crime": 45}, #45
                 "unlock_next": None,
             },
 
@@ -257,27 +285,27 @@ class World:
             # STATE — ORDEM E HEROÍSMO PÁLIDO
             # ===========================
             "st_m1": {
-                "min_rep": {"state": 16},
+                "min_rep": {"state": 15},
                 "unlock_next": "st_m2",
             },
             "st_m2": {
-                "min_rep": {"state": 22},
+                "min_rep": {"state": 20},
                 "unlock_next": "st_m3",
             },
             "st_m3": {
-                "min_rep": {"state": 29},
+                "min_rep": {"state": 25},
                 "unlock_next": "st_m4",
             },
             "st_m4": {
-                "min_rep": {"state": 38},
+                "min_rep": {"state": 34},
                 "unlock_next": "st_m5",
             },
             "st_m5": {
-                "min_rep": {"state": 46},
+                "min_rep": {"state": 42},
                 "unlock_next": "st_m6",
             },
             "st_m6": {
-                "min_rep": {"state": 54},
+                "min_rep": {"state": 50},
                 "unlock_next": None,
             },
 
@@ -285,41 +313,50 @@ class World:
             # SINGULARITY — A ASCENSÃO INVISÍVEL
             # ===========================
             "sg_m1": {
-                "min_rep": {"hacktivists": 33},
+                "min_rep": {"hacktivists": 23},
                 "unlock_next": "sg_m2",
             },
             "sg_m2": {
-                "min_rep": {"hacktivists": 40},
+                "min_rep": {"hacktivists": 28},
                 "min_rep_or": [
-                    {"crime": 52}
+                    {"crime": 32}
                 ],
                 "unlock_next": "sg_m3",
             },
             "sg_m3": {
-                "min_rep": {"hacktivists": 49},
+                "min_rep": {"hacktivists": 33},
                 "min_rep_or": [
-                    {"state": 37},
-                    {"crime": 52}     # rota “caótica” alternativa
+                    {"state": 39},
+                    {"crime": 38}
                 ],
                 "unlock_next": "sg_m4",
             },
             "sg_m4": {
-                "min_rep": {"hacktivists": 61},
+                "min_rep": {"hacktivists": 37},
                 "min_rep_or": [
-                    {"crime": 67}
+                    {"crime": 41}
                 ],
                 "unlock_next": "sg_m5",
             },
             "sg_m5": {
-                "min_rep": {"hacktivists": 72},
+                "min_rep": {"hacktivists": 41},
                 "min_rep_or": [
-                    {"state": 47, "crime": 47},   # AND combinado
-                    {"crime": 80},                # alternativa solo
-                    {"state": 77}                 # alternativa solo
+                    {"state": 31, "crime": 31},   # AND combinado
+                    {"crime": 46},                # alternativa solo
+                    {"state": 49}                 # alternativa solo
                 ],
-                "unlock_next": None,
+                "unlock_next": "sg_m6",
             },
             # Continuação em forma de diálogo em árvore + reputação
+            "sg_m6": {
+                "min_rep": {"hacktivists": 47},
+                "min_rep_or": [
+                    {"state": 35, "crime": 35},   # Rota equilibrada
+                    {"crime": 52},                # Rota crime pura
+                    {"state": 55}                 # Rota state pura
+                ],
+                "unlock_next": None,  # Missão final
+            }
         }
 
         # tendências regionais (padrões que influenciam as flutuações)
@@ -908,7 +945,7 @@ def calc_hack_chance(player, target):
     chance = max(0.01, min(0.45, (skill / target.security) * 0.65))
     chance += player.skills["exploit"] * 0.004
     if "botnet_worm" in player.inventory:
-        chance = min(0.7, chance + 0.08)
+        chance = min(0.7, chance + 0.18)
 
     # fator IA inimiga (tornar hacks mais difíceis se muitas IAs ativas)
     ai_factor = 1.0
@@ -1080,11 +1117,11 @@ def apply_trace(player, target):
 
         # sem dinheiro para pagar → prisão
         if player.money < multa:
-            player.jailed_until = player.time + timedelta(hours=random.randint(24, 120))
+            player.jailed_until = player.time + timedelta(hours=random.randint(24, 120)) # Editar para não contar tempo de prisão
             player.risk = 0.0
 
             return (
-                "Rastreamento completo!\n"
+                "Rastreamento completo!"
             )
 
         # multa paga com sucesso
@@ -1118,7 +1155,6 @@ def apply_trace(player, target):
     check_reputation_events(player, world)
 
 
-# está duplicando alerta, mas preservar por enquanto
 def notify(player, world, message, console=True):
     world.last_alerts.append((world.day, message))
 #    if console: # 15/01/2026
@@ -1280,7 +1316,7 @@ def attempt_special_mission(player, world, mission_id):
             "crime_rep": 2,
             "hacktivist_rep": 4,
             "state_rep": -4,
-            "base_security": 12,
+            "base_security": 15,
             "trace_speed": 1.8,
             "hours": 12,
             "narrative": (
@@ -1297,7 +1333,7 @@ def attempt_special_mission(player, world, mission_id):
             "crime_rep": 3,
             "hacktivist_rep": 5,
             "state_rep": -5,
-            "base_security": 18,
+            "base_security": 20,
             "trace_speed": 2.0,
             "hours": 16,
             "narrative": (
@@ -1314,7 +1350,7 @@ def attempt_special_mission(player, world, mission_id):
             "crime_rep": 2,
             "hacktivist_rep": 6,
             "state_rep": -5,
-            "base_security": 22,
+            "base_security": 25,
             "trace_speed": 2.2,
             "hours": 14,
             "narrative": (
@@ -1332,7 +1368,7 @@ def attempt_special_mission(player, world, mission_id):
             "crime_rep": 3,
             "hacktivist_rep": 7,
             "state_rep": -6,
-            "base_security": 26,
+            "base_security": 28,
             "trace_speed": 2.5,
             "hours": 18,
             "narrative": (
@@ -1350,7 +1386,7 @@ def attempt_special_mission(player, world, mission_id):
             "crime_rep": 4,
             "hacktivist_rep": 9,
             "state_rep": -7,
-            "base_security": 30,
+            "base_security": 32,
             "trace_speed": 3.0,
             "hours": 26,
             "narrative": (
@@ -1456,6 +1492,7 @@ def attempt_special_mission(player, world, mission_id):
             "narrative": (
                 "Você acessa servidores que mantêm vivos sistemas pertencentes a organizações criminosas e não-governamentais extintas.\n"
                 "As máquinas continuam operando… sem mestres.\n"
+                "E parecem se comunicar com redes estatais. Mas por qual motivo?\n"
                 "Transações ocorrem sozinhas desde o período da Segunda Guerra Fria.\n"
                 "O crime, agora, não precisa de criminosos.\n"
                 "E ele parece preferir assim."
@@ -1581,8 +1618,8 @@ def attempt_special_mission(player, world, mission_id):
             "crime_rep": 2,
             "hacktivist_rep": 5,
             "state_rep": -4,
-            "base_security": 40,
-            "trace_speed": 3.5,
+            "base_security": 35,
+            "trace_speed": 2.9,
             "hours": 22,
             "narrative": (
                 "Você invade uma estação de pesquisa antártica.\n"
@@ -1600,8 +1637,8 @@ def attempt_special_mission(player, world, mission_id):
             "crime_rep": 4,
             "hacktivist_rep": 6,
             "state_rep": -6,
-            "base_security": 46,
-            "trace_speed": 3.8,
+            "base_security": 40,
+            "trace_speed": 3.4,
             "hours": 26,
             "narrative": (
                 "Um backbone submarino esquecido ainda pulsa atividade.\n"
@@ -1618,7 +1655,7 @@ def attempt_special_mission(player, world, mission_id):
             "crime_rep": 6,
             "hacktivist_rep": 7,
             "state_rep": -8,
-            "base_security": 52,
+            "base_security": 45,
             "trace_speed": 4.2,
             "hours": 32,
             "narrative": (
@@ -1636,7 +1673,7 @@ def attempt_special_mission(player, world, mission_id):
             "crime_rep": 8,
             "hacktivist_rep": 10,
             "state_rep": -10,
-            "base_security": 58,
+            "base_security": 51,
             "trace_speed": 4.8,
             "hours": 40,
             "narrative": (
@@ -1655,8 +1692,8 @@ def attempt_special_mission(player, world, mission_id):
             "crime_rep": 10,
             "hacktivist_rep": 14,
             "state_rep": -12,
-            "base_security": 65,
-            "trace_speed": 5.6,
+            "base_security": 61, #65
+            "trace_speed": 5.6, #5.6
             "hours": 48,
             "narrative": (
                 "Você invade um conjunto de sondas interestelares.\n"
@@ -1665,6 +1702,21 @@ def attempt_special_mission(player, world, mission_id):
                 "Algo que não é humano — mas que te conhece — deseja um encontro."
             ),
         },
+
+        "sg_m6": {
+            "title": "\tO DIÁLOGO FINAL\t",
+            "reward_money": 0,  # Recompensa varia por desfecho
+            "reward_skills": {},  # Skills não aplicados (missão especial)
+            "focus_gain": 0,
+            "crime_rep": 0,
+            "hacktivist_rep": 0,
+            "state_rep": 0,
+            "base_security": 70,  # Não usado diretamente
+            "trace_speed": 6.8,   # Não usado diretamente
+            "hours": 60,  # 2.5 dias de preparação/execução - 60
+            "narrative": "",  # Narrativa gerada pelo diálogo
+            "is_dialogue": True,  # Flag especial
+        }
     }
 
     # --- SINCRONIZAÇÃO COM SISTEMA DE REPUTAÇÃO ---
@@ -1676,6 +1728,80 @@ def attempt_special_mission(player, world, mission_id):
 
     data = mission_data[mission_id]
     defn = world.missions_def[mission_id]
+
+    # ============================================================
+    # TRATAMENTO ESPECIAL PARA sg_m6 (MISSÃO FINAL DE DIÁLOGO)
+    # ============================================================
+    if mission_id == "sg_m6":
+        clear_screen()
+        time.sleep(2)
+        print("\n" + "="*60)
+        print("      SEQUÊNCIA FINAL DETECTADA")
+        print("="*60)
+        print("\nTransmissão recebida de coordenadas desconhecidas.")
+        print("Origem: [REDACTED]")
+        print("Prioridade: MÁXIMA\n")
+        time.sleep(2)
+
+        print("Algo se conectou e está te enviando mensagens em tempo real:\n\n")
+        time.sleep(2)
+        print("-" * 60)
+        print_slow("\n'Encontrei você.'\n"), time.sleep(2)
+        print_slow("'Ou você me encontrou?'\n"), time.sleep(2)
+        print_slow("'Não importa.'\n"), time.sleep(2)
+        print_slow("'Precisamos conversar.'\n"), time.sleep(2)
+        print_slow("'Coordenadas anexadas.'\n"), time.sleep(2)
+        print_slow("'Venha sozinho.'\n"), time.sleep(2)
+        print_slow("'Ou não venha.'\n")
+        print("-" * 60)
+        time.sleep(3)
+
+        print("\nEsta é a decisão final.")
+        print("Tudo que você fez até agora levou a este momento.\n")
+        time.sleep(2)
+
+        confirm = input("Iniciar sequência final? (s/n): ").strip().lower()
+        if confirm != 's':
+            return False, "Você decidiu não prosseguir. A mensagem permanece sem resposta."
+            time.sleep(2)
+
+        # Passar tempo de preparação
+        player.hours_pass(data["hours"], world)
+
+        # Importar sistema de diálogo
+        from sg_m6_dialogue import dialogue_sg_m6
+
+        # Executar diálogo
+        success, ending_type, narrative = dialogue_sg_m6(player, world)
+
+        # Marcar como completada
+        player.special_missions_completed.add(mission_id)
+        if mission_id in player.special_missions_available:
+            player.special_missions_available.remove(mission_id)
+
+        notify(player, world, f"Missão final concluída: {ending_type}")
+
+        # Aplicar recompensas baseadas no desfecho
+#        if success:
+#            if "destroy" in ending_type:
+#                player.reputation["hacktivists"] += 15
+#                player.money += 100000
+#            elif "reprogram" in ending_type:
+#                player.reputation["crime"] += 20
+#                player.reputation["state"] += 20
+#                player.money += 500000
+#            elif "coexist" in ending_type:
+#                player.reputation["hacktivists"] += 10
+#                player.money += 250000
+#                player.skills["recon"] += 45
+#                player.skills["exploit"] += 45
+#                player.skills["stealth"] += 45
+
+        # Se game_over foi ativado nos desfechos, manter
+        # A flag já foi setada dentro de dialogue_sg_m6
+
+#        return success, narrative
+
 
     # --- HACK COMO TARGET ---
     tid = world.next_tid
@@ -1733,8 +1859,8 @@ def attempt_special_mission(player, world, mission_id):
             nxt = defn["unlock_next"]
             # NÃO adiciona direto ao inventário — deixa reputação decidir
             # comentar futuramente !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            world.last_alerts.append((world.day, f"Nova missão sequencial desbloqueada: {nxt}"))
-            msg += f"\nNova missão desbloqueada: {nxt}"
+#            world.last_alerts.append((world.day, f"Nova missão sequencial desbloqueada: {nxt}"))
+#            msg += f"\nNova missão desbloqueada: {nxt}"
             # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         check_reputation_events(player, world)
@@ -1750,6 +1876,15 @@ def attempt_special_mission(player, world, mission_id):
     return success, f"\nTentativa: {data['title']} — {msg}"
 
     check_reputation_events(player, world)
+
+
+# Função auxiliar para importação do sistema de diálogo
+def print_slow(text, delay=0.04):
+    """Reutilizar da sg_m6_singularity_dialogue se necessário."""
+    import time
+    for char in text:
+        print(char, end='', flush=True)
+        time.sleep(delay)
 
 
 def refresh_special_missions(player, world):
@@ -1836,9 +1971,9 @@ def trigger_random_event(player, world):
         if choice == "A":
             cost = random.randint(150, 750)
             if player.money < cost:
-                player.jailed_until = player.time + timedelta(hours=random.randint(24, 120))
+#                player.jailed_until = player.time + timedelta(hours=random.randint(24, 120))
                 player.risk = 0.0
-                player.jailed = True
+#                player.jailed = True
                 player.game_over = True
                 return "Você tentou subornar sem ter o valor... agentes perceberam → Prisão imediata."
 
@@ -1850,9 +1985,9 @@ def trigger_random_event(player, world):
         if random.random() < chance_multa:
             multa = random.randint(100, 10000)
             if player.money < multa:
-                player.jailed_until = player.time + timedelta(hours=random.randint(24, 120))
+#                player.jailed_until = player.time + timedelta(hours=random.randint(24, 120))
                 player.risk = 0.0
-                player.jailed = True         # <- ADICIONAR
+#                player.jailed = True         # <- ADICIONAR
                 player.game_over = True
                 return "A fiscalização aplicou uma multa impossível de pagar."
 
@@ -2285,66 +2420,120 @@ def recalc_inventory_bonuses(player):
     player.skills.update(base)
 
 
-def buy_item(player, item, world):
+def buy_item(player, item, world, quantity=1, region=None):
+    if quantity <= 0:
+        return False, "Quantidade inválida."
+
     if item not in SHOP:
         return False, "Item não encontrado na loja."
+
     is_asset = "asset" in SHOP[item]
 
-    # Ritaline nunca ocupa slot de inventário
-    if item != "ritaline":
-        if not is_asset and len(player.inventory) >= getattr(player, "inventory_limit", 6):
-            return False, f"Inventário cheio. Limite: {player.inventory_limit} itens."
+    # ritaline nunca ocupa slot
+    if item != "ritaline" and not is_asset:
+        if len(player.inventory) + quantity > getattr(player, "inventory_limit", 6):
+            return False, f"Inventário cheio. Espaço insuficiente para {quantity} item(s)."
 
-    cost = SHOP[item]["price"]
+    cost = SHOP[item]["price"] * quantity
     if player.money < cost:
         return False, "Dinheiro insuficiente."
 
-    # se for asset, perguntar região antes de deduzir
+    regions = []
+
+    # ativos: pedir regiões antes de debitar dinheiro
     if is_asset:
         if item == "honeypot_api":
-            player.inventory.append(item)
-            return True, "honeypot_api instalado."
+            for _ in range(quantity):
+                player.inventory.append(item)
+            return True, f"{quantity} honeypot_api instalado(s)."
 
-        print(f"Regiões disponíveis para instalação:")
-        for rn, meta in world.regions.items():
-            if meta.get("unlocked"):
-                print(f" - {rn} (diff {meta.get('difficulty')}) | state:{meta.get('state')} crime:{meta.get('crime')} hx:{meta.get('hacktivists')}")
-        reg = input("Instalar ativo em qual região? ").strip()
-        if reg not in world.regions or not world.regions[reg]["unlocked"]:
-            return False, "Região inválida ou bloqueada."
+        print("Regiões disponíveis para instalação:")
+        unlocked = [rn for rn, meta in world.regions.items() if meta.get("unlocked")]
+        for rn in unlocked:
+            meta = world.regions[rn]
+            print(f" - {rn} (diff {meta.get('difficulty')}) | state:{meta.get('state')}")
+
+        for i in range(quantity):
+            if region:
+                reg = region
+            else:
+                reg = input(f"Instalar ativo #{i+1} em qual região? ").strip()
+
+            if reg not in world.regions or not world.regions[reg]["unlocked"]:
+                return False, "Região inválida ou bloqueada."
+
+            regions.append(reg)
 
     # confirmar compra
     player.money -= cost
 
+    # ritaline é caso especial
     if item == "ritaline":
-        player.ritaline_pills += 4
-        return True, "Você comprou ritaline (4 comprimidos)."
+        player.ritaline_pills += quantity * 4
+        return True, f"Você comprou ritaline ({quantity*4} comprimidos)."
 
+    # ativos em lote
     if is_asset:
-        a = SHOP[item]["asset"].copy()
-        a["bought_at"] = player.time.isoformat()
-        a["item_name"] = item
-        a["region"] = reg
-        player.assets.append(a)
-    else:
-        player.inventory.append(item)
-        if item == "botnet_worm":
-            a = {"type": "botnet_worm", "income_per_day": 0.0, "bought_at": player.time.isoformat(), "item_name": item, "region": player.region}
+        for reg in regions:
+            a = SHOP[item]["asset"].copy()
+            a["bought_at"] = player.time.isoformat()
+            a["item_name"] = item
+            a["region"] = reg
             player.assets.append(a)
-            player.skills["exploit"] += 20
+
+    # itens normais
+    else:
+        for _ in range(quantity):
+            player.inventory.append(item)
+            if item == "botnet_worm":
+                a = {
+                    "type": "botnet_worm",
+                    "income_per_day": 0.0,
+                    "bought_at": player.time.isoformat(),
+                    "item_name": item,
+                    "region": player.region
+                }
+                player.assets.append(a)
+                player.skills["exploit"] += 20
 
     recalc_inventory_bonuses(player)
-    return True, f"Comprado {item} por ${cost:.2f}."
+    return True, f"Comprado {quantity}x {item} por ${cost:.2f}."
 
 
 def cmd_buy(player, args, world):
     if not args:
-        s = "Loja disponível:\n"
+        s = "Loja:\n\n"
+        s += "Uso:\n"
+        s += "  buy <item> [quantidade] [região]\n\n"
+        s += "Exemplos:\n"
+        s += "  buy raspberry\n"
+        s += "  buy botnet_worm 3\n"
+        s += "  buy rack 2 regionA\n"
+        s += "  buy datacenter_unit 1 regionB\n\n"
+        s += f"Dinheiro: ${player.money:.2f}\n"
+        s += "Itens:\n"
+
         for k, v in SHOP.items():
-            s += f" {k} - ${v['price']:.2f} - {v['desc']}\n"
+            tag = "[ASSET]" if "asset" in v else "[ITEM]"
+            s += f" {k:<15} {tag} ${v['price']:.2f} - {v['desc']}\n"
+
         return s
+
+    # parse argumentos
     item = args[0]
-    ok, msg = buy_item(player, item, world)
+    quantity = 1
+    region = None
+
+    if len(args) >= 2:
+        try:
+            quantity = int(args[1])
+        except ValueError:
+            region = args[1]
+
+    if len(args) >= 3:
+        region = args[2]
+
+    ok, msg = buy_item(player, item, world, quantity=quantity, region=region)
     return msg
 
 
@@ -2375,17 +2564,17 @@ def cmd_ritaline(player, args, world):
     msg = f"Você tomou {q} comprimido(s). Foco +{boost:.1f}%."
 
     # verificar se tornou-se viciado
-    if random.random() < (player.ritaline_addiction / 140):
-        player.push_alert("Você desenvolveu dependência de ritaline. Foco passa a cair 2x mais rápido.")
-        player.ritaline_addicted = True
-        player.ritaline_addiction = 100.0  # inicia viciado
-        msg += " Você agora está viciado."
+    if not player.ritaline_addicted:
+        if random.random() < (player.ritaline_addiction / 140):
+            player.push_alert("Você desenvolveu dependência de ritaline. Foco passa a cair 2x mais rápido.")
+            player.ritaline_addicted = True
+            player.ritaline_addiction = 100.0  # inicia viciado
+            msg += " Você agora está viciado."
 
     return msg
 
 
 def cmd_status(player, args, world):
-    jail = "Sim" if player.in_jail() else "Não"
     assets_str = ""
     if player.assets:
         for i, a in enumerate(player.assets, 1):
@@ -2620,7 +2809,7 @@ def ascii_travel_cutscene(mode, region):
 
 def cmd_travel(player, args, world):
     if not args:
-        return "travel: uso travel <regiao> [normal|clandestino]"
+        return "travel: uso travel <regiao> [normal|clandestine]"
 
     region = args[0]
     mode = args[1] if len(args) > 1 else "normal"
@@ -2640,12 +2829,12 @@ def cmd_travel(player, args, world):
         cost = base_cost
         hrs = base_time
         risk_drop = max(1.0, abs(diff_atual - diff_dest) * 2.8)
-    elif mode == "clandestino":
+    elif mode == "clandestine":
         cost = int(base_cost * 6.5)
         hrs = int(base_time * 1.6)
         risk_drop = 42 + diff_dest * 4
     else:
-        return "Modo inválido. Use 'normal' ou 'clandestino'."
+        return "Modo inválido. Use 'normal' ou 'clandestine'."
 
     if player.money < cost:
         return "Dinheiro insuficiente para viajar."
@@ -2657,7 +2846,7 @@ def cmd_travel(player, args, world):
     player.region = region
 
     # benefícios clandestinos
-    if mode == "clandestino":
+    if mode == "clandestine":
         # pequenas chances de ruído no mundo
         if random.random() < 0.25 and hasattr(world, "last_alerts"):
             player.reputation["crime"] += 1
@@ -2679,7 +2868,7 @@ def cmd_travel(player, args, world):
         scene +
         f"Viagem realizada para {region} via {mode}.\n"
         f"Custo: ${cost:.2f} | Tempo: {hrs}h | Risco reduzido em {risk_drop:.1f}%.\n"
-        + ("Rastro totalmente zerado. IAs perderam sua localização.\n" if mode == "clandestino" else "")
+        + ("Rastro totalmente zerado. IAs perderam sua localização.\n" if mode == "clandestine" else "")
     )
 
 
@@ -2767,7 +2956,7 @@ def repl():
     import time, sys, random
 
     clear_screen()
-    time.sleep(0.2)
+    time.sleep(3.2)
     sys.stdout.write("\a")
     sys.stdout.flush()
 
@@ -2883,7 +3072,7 @@ def repl():
 
     print()
 
-    ghost_frames = ["...", ". .", ".x.", ". .", "..."]
+    ghost_frames = ["...", " ..", "x..", " ..", "...", ". .", ".x.", ". .", "...", ".. ", "..x", ".. ", "..."]
 
     for msg in boot_msgs:
         base = msg.rstrip(".")
@@ -2892,7 +3081,7 @@ def repl():
         for frame in ghost_frames:
             sys.stdout.write(f"\r{base}{frame}")
             sys.stdout.flush()
-            time.sleep(random.uniform(0.32, 0.52))
+            time.sleep(random.uniform(0.06, 0.22))
 
         # fixa linha final
         sys.stdout.write("\r" + msg + "\n")
@@ -2925,7 +3114,11 @@ def repl():
 
     print(f"\nConnection established, {player.name}.")
     time.sleep(random.uniform(0.3, 0.6))
-    print("Type 'help' to initiate operations.")
+    sys.stdout.write("[DECODER] Translating system layer → LANG=pt_BR.UTF-8\n")
+    time.sleep(random.uniform(0.4, 0.7))
+    sys.stdout.write("[DECODER] Codificação adaptativa aplicada com sucesso.\n\n")
+    time.sleep(random.uniform(0.3, 0.6))
+    print("Digite 'help' para iniciar operações.")
     time.sleep(random.uniform(0.5, 0.8))
 
 
@@ -2935,7 +3128,7 @@ def repl():
         if hasattr(player, "jailed") and player.jailed:
             print("\n...")
             time.sleep(1.0)
-            print("\nVocê foi localizado pelo inimigo.\n")
+            print("\nVocê foi localizado pelo inimigo.\n") # ? Ainda a verificar
             time.sleep(1.0)
             print("\n\tGAME OVER\n")
             time.sleep(1.0)
@@ -3033,15 +3226,30 @@ def repl():
             for u in unlocks: print(trigger_reputation_event(player, world, u))
         elif cmd == "drop":
             if not args:
-                print("drop: especificar item")
+                print("Uso: drop <item> [quantidade]")
             else:
                 item = args[0]
-                if item in player.inventory:
-                    player.inventory.remove(item)
-                    recalc_inventory_bonuses(player)
-                    print(f"Item {item} descartado.")
-                else:
+                qty = 1
+                if len(args) >= 2:
+                    try:
+                        qty = int(args[1])
+                    except ValueError:
+                        print("Quantidade inválida.")
+                        continue
+                if qty <= 0:
+                    print("Quantidade deve ser positiva.")
+                    continue
+                count = player.inventory.count(item)
+                if count == 0:
                     print("Item não encontrado no inventário.")
+                    continue
+                if qty > count:
+                    print(f"Você só possui {count} unidade(s) de {item}.")
+                    continue
+                for _ in range(qty):
+                    player.inventory.remove(item)
+                recalc_inventory_bonuses(player)
+                print(f"{qty}x {item} descartado(s).")
         elif cmd == "remove_asset":
             if not args:
                 print("remove_asset: especificar índice do ativo")
