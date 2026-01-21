@@ -65,13 +65,13 @@ Decidi deixar o jogo em copyleft primeiro porque tudo começou como uma oportuni
 
 - buff em botnet_worm:
 
-    if "botnet_worm" in player.inventory:
-        chance = min(0.7, chance + 0.08)
+if "botnet_worm" in player.inventory:
+    chance = min(0.7, chance + 0.08)
 
-        para:
+para:
 
-    if "botnet_worm" in player.inventory:
-        chance = min(0.7, chance + 0.18)
+if "botnet_worm" in player.inventory:
+    chance = min(0.7, chance + 0.18)
 
 ---
 
