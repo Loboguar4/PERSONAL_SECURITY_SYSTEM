@@ -38,7 +38,7 @@
 
 ## Licença
 
-PERSONAL_SECURITY_SYSTEM
+_DAEMON
 Copyright (C) 2025 Bandeirinha
 
 This program is free software: you can redistribute it and/or modify
