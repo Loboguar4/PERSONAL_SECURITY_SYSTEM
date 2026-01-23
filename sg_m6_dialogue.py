@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-# PERSONAL_SECURITY_SYSTEM - ver. 0.9.4-beta
+# _DAEMON - ver. 0.9.4-beta
 # Copyright (C) 2025 Bandeirinha
 # Licensed under the GNU GPL v3.0 or later
 
