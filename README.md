@@ -4,7 +4,9 @@
   <img src="sat.png" alt="satelite" width="800"/>
 </p>                                   
              
-    Para apoiar este e mais projetos: pixgg.com/bandeirinha
+Para apoiar este e mais projetos:
+
+    pixgg.com/bandeirinha
 
     
 **_DAEMON** é um jogo de RPG single-player em modo texto (terminal) que simula um ecossistema dinâmico de IAs, reputações faccionais, operações de invasão abstratas, eventos mundiais e missões narrativas. O projeto é **ficcional** e não ensina técnicas reais de intrusão ou instruções práticas de ataque.
