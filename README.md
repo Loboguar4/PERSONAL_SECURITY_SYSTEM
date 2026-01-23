@@ -1,4 +1,4 @@
-# PERSONAL_SECURITY_SYSTEM - ver. 0.9.4-beta ~~ Desenvolvido pelo Bandeirinha
+# _DAEMON - ver. 0.9.4-beta ~~ Desenvolvido pelo Bandeirinha
                                                                                                     
 <p align="center">
   <img src="sat.png" alt="satelite" width="800"/>
@@ -7,7 +7,7 @@
     Para apoiar este e mais projetos: pixgg.com/bandeirinha
 
     
-**PERSONAL_SECURITY_SYSTEM** é um jogo single-player em modo texto (terminal) que simula um ecossistema dinâmico de IAs, reputações faccionais, operações de invasão abstratas, eventos mundiais e missões narrativas. O projeto é **ficcional** e não ensina técnicas reais de intrusão ou instruções práticas de ataque.
+**_DAEMON** é um jogo de RPG single-player em modo texto (terminal) que simula um ecossistema dinâmico de IAs, reputações faccionais, operações de invasão abstratas, eventos mundiais e missões narrativas. O projeto é **ficcional** e não ensina técnicas reais de intrusão ou instruções práticas de ataque.
 
 <img src="https://img.shields.io/badge/status-active-brightgreen">  
 <img src="https://img.shields.io/badge/engine-python3-blue">
@@ -107,8 +107,8 @@ py --version
 
 1. Clone o repositório:
 
-git clone https://github.com/Loboguar4/PERSONAL_SECURITY_SYSTEM.git
-cd PERSONAL_SECURITY_SYSTEM
+git clone https://github.com/Loboguar4/_DAEMON.git
+cd _DAEMON
 
 
 2. (Opcional) Crie e ative um ambiente virtual:
@@ -120,7 +120,7 @@ source .venv/bin/activate      # Linux / macOS
 
 3. Execute o jogo:
 
-python3 PERSONAL_SECURITY_SYSTEM.py
+python3 _DAEMON.py
 # ou no Windows
-py PERSONAL_SECURITY_SYSTEM.py
+py _DAEMON.py
 
