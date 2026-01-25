@@ -1219,7 +1219,7 @@ def trigger_reputation_event(player, world, event):
     # --- CRIME ----------------------------------------------
     elif event == "crime_event1":
         player.skills["exploit"] += 7
-        msg = "Grupo clandestino te passa payload agressivo. Exploit +7."
+        msg = "Grupo clandestino te passa um payload agressivo. Exploit +7."
         notify(player, world, f"[CRIME] {msg}")
 
     elif event == "crime_event2":
