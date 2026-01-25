@@ -2957,7 +2957,7 @@ def repl():
     import time, sys, random
 
     clear_screen()
-    time.sleep(3.2)
+    time.sleep(0.2)
     sys.stdout.write("\a")
     sys.stdout.flush()
 
