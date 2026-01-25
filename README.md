@@ -1,7 +1,7 @@
 # _DAEMON - ver. 0.9.4-beta ~~ Desenvolvido pelo Bandeirinha
                                                                                                     
 <p align="center">
-  <img src="/docs/snapshots/sat.png" alt="satelite" width="800"/>
+  <img src="/docs/snapshots/satelite.png" alt="satelite" width="800"/>
 </p>                                   
              
 Para apoiar este e mais projetos:
