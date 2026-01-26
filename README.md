@@ -58,7 +58,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 ## Nota do desenvolvedor
-Decidi deixar o jogo em copyleft primeiro porque tudo começou como uma oportunidade para interagir com técnicas relativamente mais complexas dentro da linguagem Python. É um projeto para fins educacionais e de entretenimento. Segundo porque provavelmente não terei tempo até deixar o jogo como eu gostaria. Mas já fico imensamente satisfeito de ter conseguido publicar uma versão beta pelo menos... Então contarei com a comunidade Open Source para corrigir, melhorar, expandir e espalhar este "worm". 
+Decidi deixar o jogo em copyleft primeiro porque tudo começou como uma oportunidade para interagir com técnicas relativamente mais complexas dentro da linguagem Python, sendo um projeto para fins educacionais e de entretenimento. Segundo porque provavelmente não terei tempo até deixar o jogo como eu gostaria. Mas já fico imensamente satisfeito de ter conseguido publicar uma versão beta pelo menos... Então contarei com a comunidade Open Source para corrigir, melhorar, expandir e espalhar este "worm". 
 
     
 ## ATUALIZAÇÃO 26/01/2026 (ver. 0.9.5-beta):
