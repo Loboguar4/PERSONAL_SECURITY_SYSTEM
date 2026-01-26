@@ -1,28 +1,20 @@
 
 #!/usr/bin/env python3
 """
-# _DAEMON - ver. 0.9.4-beta
+# _DAEMON - ver. 0.9.5-beta
 # Copyright (C) 2025 Bandeirinha
 # Licensed under the GNU GPL v3.0 or later
 
 NOTAS DE ATUALIZAÇÃO:
 
-- ENCERRAMENTO E MISSÃO FINAL EM FORMA DE DIÁLOGO EM sg_m6_dialogue.py (ATENÇÃO: CONTÉM SPOILERS!!!)
-
-- buff em botnet_worm:
-
-    if "botnet_worm" in player.inventory:
-        chance = min(0.7, chance + 0.08)
-
->>> para >>>
-
-    if "botnet_worm" in player.inventory:
-        chance = min(0.7, chance + 0.18)
+- CORREÇÃO DE ENCERRAMENTO E MISSÃO FINAL EM FORMA DE DIÁLOGO EM sg_m6_dialogue.py (ATENÇÃO: CONTÉM SPOILERS!!!)
 
 
 TASKS EM ANDAMENTO:
 
 - Adicionar gameovers fatais (que causam a morte do personagem, não somente a prisão)
+
+- Implementar uma animação de roll exclusiva para sg_m6
 
 - Substituir "jailed" no código por "wanted"
     Manter lógica mas alterar conceitualmente já que não há mais sistema de prisão temporária
@@ -65,13 +57,13 @@ if RNG_SEED is not None:
 class Player:
     def __init__(self):
         self.name = ""
-        self.money = 75.0
+        self.money = 750000.0
         self.focus = 100.0
         self.ritaline_pills = 0
         self.ritaline_addiction = 0.0  # 0 a 100, chance de vício
         self.ritaline_addicted = False
         self.time = START_DATE
-        self.skills = {"recon": 1.0, "exploit": 1.0, "stealth": 1.0}
+        self.skills = {"recon": 40.0, "exploit": 70.0, "stealth": 48.0}
         self.risk = 0.0  # risco individual (mantido fora dos metadados regionais)
         self.fs = default_filesystem()
         self.cwd = "/home"
@@ -82,7 +74,7 @@ class Player:
         self.knowledge = 0
         self.game_over = False
         # reputações globais do jogador
-        self.reputation = {"hacktivists": 0, "state": 0, "crime": 0}
+        self.reputation = {"hacktivists": 45, "state": 10, "crime": 78}
         self.command_history = deque(maxlen=200)
         self.known_enemy_fps = {}   # {fingerprint: {"id":ai.uid, "first_seen": datetime, "meta":{}}}
         self.local_alerts = deque(maxlen=200)  # mensagens importantes recebidas
@@ -230,27 +222,27 @@ class World:
             # HACKTIVISTS — ROTAS DA VERDADE
             # ===========================
             "hx_m1": {
-                "min_rep": {"hacktivists": 6}, #6
+                "min_rep": {"hacktivists": 7}, #6
                 "unlock_next": "hx_m2",
             },
             "hx_m2": {
-                "min_rep": {"hacktivists": 10}, #10
+                "min_rep": {"hacktivists": 12}, #10
                 "unlock_next": "hx_m3",
             },
             "hx_m3": {
-                "min_rep": {"hacktivists": 14}, #14
+                "min_rep": {"hacktivists": 18}, #14
                 "unlock_next": "hx_m4",
             },
             "hx_m4": {
-                "min_rep": {"hacktivists": 19}, #19
+                "min_rep": {"hacktivists": 26}, #19
                 "unlock_next": "hx_m5",
             },
             "hx_m5": {
-                "min_rep": {"hacktivists": 25}, #25
+                "min_rep": {"hacktivists": 33}, #25
                 "unlock_next": "hx_m6",
             },
             "hx_m6": {
-                "min_rep": {"hacktivists": 33}, #33
+                "min_rep": {"hacktivists": 45}, #33
                 "unlock_next": None,
             },
 
@@ -258,27 +250,27 @@ class World:
             # CRIME — ROTA DA CORRUPÇÃO DIGITAL
             # ===========================
             "cr_m1": {
-                "min_rep": {"crime": 9}, #9
+                "min_rep": {"crime": 11}, #9
                 "unlock_next": "cr_m2",
             },
             "cr_m2": {
-                "min_rep": {"crime": 15}, #15
+                "min_rep": {"crime": 18}, #15
                 "unlock_next": "cr_m3",
             },
             "cr_m3": {
-                "min_rep": {"crime": 21}, #16
+                "min_rep": {"crime": 27}, #16
                 "unlock_next": "cr_m4",
             },
             "cr_m4": {
-                "min_rep": {"crime": 28}, #28
+                "min_rep": {"crime": 35}, #28
                 "unlock_next": "cr_m5",
             },
             "cr_m5": {
-                "min_rep": {"crime": 36}, #36
+                "min_rep": {"crime": 46}, #36
                 "unlock_next": "cr_m6",
             },
             "cr_m6": {
-                "min_rep": {"crime": 45}, #45
+                "min_rep": {"crime": 55}, #45
                 "unlock_next": None,
             },
 
@@ -290,23 +282,23 @@ class World:
                 "unlock_next": "st_m2",
             },
             "st_m2": {
-                "min_rep": {"state": 20},
+                "min_rep": {"state": 25},
                 "unlock_next": "st_m3",
             },
             "st_m3": {
-                "min_rep": {"state": 25},
+                "min_rep": {"state": 34},
                 "unlock_next": "st_m4",
             },
             "st_m4": {
-                "min_rep": {"state": 34},
+                "min_rep": {"state": 42},
                 "unlock_next": "st_m5",
             },
             "st_m5": {
-                "min_rep": {"state": 42},
+                "min_rep": {"state": 50},
                 "unlock_next": "st_m6",
             },
             "st_m6": {
-                "min_rep": {"state": 50},
+                "min_rep": {"state": 61},
                 "unlock_next": None,
             },
 
@@ -314,47 +306,47 @@ class World:
             # SINGULARITY — A ASCENSÃO INVISÍVEL
             # ===========================
             "sg_m1": {
-                "min_rep": {"hacktivists": 23},
+                "min_rep": {"hacktivists": 33},
                 "unlock_next": "sg_m2",
             },
             "sg_m2": {
-                "min_rep": {"hacktivists": 28},
+                "min_rep": {"hacktivists": 40},
                 "min_rep_or": [
-                    {"crime": 32}
+                    {"crime": 52}
                 ],
                 "unlock_next": "sg_m3",
             },
             "sg_m3": {
-                "min_rep": {"hacktivists": 33},
+                "min_rep": {"hacktivists": 49},
                 "min_rep_or": [
-                    {"state": 39},
-                    {"crime": 38}
+                    {"state": 68},
+                    {"crime": 70}
                 ],
                 "unlock_next": "sg_m4",
             },
             "sg_m4": {
-                "min_rep": {"hacktivists": 37},
+                "min_rep": {"hacktivists": 58},
                 "min_rep_or": [
-                    {"crime": 41}
+                    {"crime": 80}
                 ],
                 "unlock_next": "sg_m5",
             },
             "sg_m5": {
-                "min_rep": {"hacktivists": 41},
+                "min_rep": {"hacktivists": 67},
                 "min_rep_or": [
-                    {"state": 31, "crime": 31},   # AND combinado
-                    {"crime": 46},                # alternativa solo
-                    {"state": 49}                 # alternativa solo
+                    {"state": 51, "crime": 51},   # AND combinado
+                    {"crime": 86},                # alternativa solo
+                    {"state": 89}                 # alternativa solo
                 ],
                 "unlock_next": "sg_m6",
             },
             # Continuação em forma de diálogo em árvore + reputação
             "sg_m6": {
-                "min_rep": {"hacktivists": 47},
+                "min_rep": {"hacktivists": 74},
                 "min_rep_or": [
-                    {"state": 35, "crime": 35},   # Rota equilibrada
-                    {"crime": 52},                # Rota crime pura
-                    {"state": 55}                 # Rota state pura
+                    {"state": 65, "crime": 65},   # Rota equilibrada
+                    {"crime": 92},                # Rota crime pura
+                    {"state": 95}                 # Rota state pura
                 ],
                 "unlock_next": None,  # Missão final
             }
@@ -392,7 +384,7 @@ class World:
         if self.day == 30:
             self.regions["Asia"]["unlocked"] = True
             self.last_alerts.append((self.day, "Asia foi desbloqueada."))
-        if self.day == 90:
+        if self.day == 60:
             self.regions["Global"]["unlocked"] = True
             self.last_alerts.append((self.day, "Global foi desbloqueada."))
 
@@ -964,7 +956,7 @@ def visual_hack_roll(chance, player):
     print("\n[ROULETTE] Inicializando protocolo de invasão...\n")
     bar = ["░", "▒", "▓", "█"]
     focus = player.focus
-    for i in range(20):
+    for i in range(40):
         symbol = random.choice(bar)
         print(f"\r{symbol*30}  Foco:{focus:.1f}%  Chance:{chance*100:.1f}%", end="", flush=True)
         time.sleep(0.03 + random.random() * (0.07 - focus / 2000))
@@ -1219,7 +1211,7 @@ def trigger_reputation_event(player, world, event):
     # --- CRIME ----------------------------------------------
     elif event == "crime_event1":
         player.skills["exploit"] += 7
-        msg = "Grupo clandestino te passa um payload agressivo. Exploit +7."
+        msg = "Grupo clandestino te passa payload agressivo. Exploit +7."
         notify(player, world, f"[CRIME] {msg}")
 
     elif event == "crime_event2":
@@ -1271,7 +1263,7 @@ def visual_mission_roll(chance, player, title):
 
     bar = ["▁","▂","▃","▄","▅","▆","▇","█"]
     focus = player.focus
-    for i in range(35):
+    for i in range(55):
         symbol = random.choice(bar)
         print(
             f"\r{symbol*40}  Foco:{focus:.1f}%  Sucesso:{chance*100:.1f}%",
@@ -1705,15 +1697,15 @@ def attempt_special_mission(player, world, mission_id):
         },
 
         "sg_m6": {
-            "title": "\tO DIÁLOGO FINAL\t",
+            "title": "\tSINGULARIDADE\t",
             "reward_money": 0,  # Recompensa varia por desfecho
             "reward_skills": {},  # Skills não aplicados (missão especial)
             "focus_gain": 0,
             "crime_rep": 0,
             "hacktivist_rep": 0,
             "state_rep": 0,
-            "base_security": 70,  # Não usado diretamente
-            "trace_speed": 6.8,   # Não usado diretamente
+            "base_security": 75,  # Não usado diretamente
+            "trace_speed": 6.0,   # Não usado diretamente
             "hours": 60,  # 2.5 dias de preparação/execução - 60
             "narrative": "",  # Narrativa gerada pelo diálogo
             "is_dialogue": True,  # Flag especial
@@ -1737,7 +1729,7 @@ def attempt_special_mission(player, world, mission_id):
         clear_screen()
         time.sleep(2)
         print("\n" + "="*60)
-        print("      SEQUÊNCIA FINAL DETECTADA")
+        print("      SINGULARIDADE")
         print("="*60)
         print("\nTransmissão recebida de coordenadas desconhecidas.")
         print("Origem: [REDACTED]")
