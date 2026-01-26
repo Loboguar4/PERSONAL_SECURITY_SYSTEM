@@ -1,4 +1,4 @@
-# _DAEMON - ver. 0.9.5-beta ~~ Desenvolvido pelo Bandeirinha
+# _DÆMON - ver. 0.9.5-beta ~~ Desenvolvido pelo Bandeirinha
                                                                                                     
 <p align="center">
   <img src="/docs/snapshots/satelite.png" alt="satelite" width="800"/>
@@ -9,7 +9,7 @@ Para apoiar este e mais projetos:
     pixgg.com/bandeirinha
 
     
-**_DAEMON** é um jogo de RPG single-player em modo texto (terminal) que simula um ecossistema dinâmico de IAs, reputações faccionais, operações de invasão abstratas, eventos mundiais e missões narrativas. O projeto é **ficcional** e não ensina técnicas reais de intrusão ou instruções práticas de ataque.
+**_DÆMON** (_DAEMON) é um jogo de RPG single-player em modo texto (terminal) que simula um ecossistema dinâmico de IAs, reputações faccionais, operações de invasão abstratas, eventos mundiais e missões narrativas. O projeto é **ficcional** e não ensina técnicas reais de intrusão ou instruções práticas de ataque.
 
 <img src="https://img.shields.io/badge/status-active-brightgreen">  
 <img src="https://img.shields.io/badge/engine-python3-blue">
