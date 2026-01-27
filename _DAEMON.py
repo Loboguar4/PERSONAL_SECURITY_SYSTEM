@@ -63,7 +63,7 @@ class Player:
         self.ritaline_addiction = 0.0  # 0 a 100, chance de vício
         self.ritaline_addicted = False
         self.time = START_DATE
-        self.skills = {"recon": 40.0, "exploit": 70.0, "stealth": 48.0}
+        self.skills = {"recon": 1.0, "exploit": 1.0, "stealth": 1.0}
         self.risk = 0.0  # risco individual (mantido fora dos metadados regionais)
         self.fs = default_filesystem()
         self.cwd = "/home"
@@ -74,7 +74,7 @@ class Player:
         self.knowledge = 0
         self.game_over = False
         # reputações globais do jogador
-        self.reputation = {"hacktivists": 45, "state": 10, "crime": 78}
+        self.reputation = {"hacktivists": 0, "state": 0, "crime": 0}
         self.command_history = deque(maxlen=200)
         self.known_enemy_fps = {}   # {fingerprint: {"id":ai.uid, "first_seen": datetime, "meta":{}}}
         self.local_alerts = deque(maxlen=200)  # mensagens importantes recebidas
