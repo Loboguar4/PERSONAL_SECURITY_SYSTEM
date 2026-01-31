@@ -57,7 +57,7 @@ if RNG_SEED is not None:
 class Player:
     def __init__(self):
         self.name = ""
-        self.money = 750000.0
+        self.money = 75.0
         self.focus = 100.0
         self.ritaline_pills = 0
         self.ritaline_addiction = 0.0  # 0 a 100, chance de vício
