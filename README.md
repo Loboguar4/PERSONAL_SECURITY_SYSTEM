@@ -99,7 +99,7 @@ py --version
 
 1. Clone o repositório:
 
-git clone https://github.com/Loboguar4/_DAEMON.git
+git clone https://github.com/AshenDesk/_DAEMON.git
 cd _DAEMON
 
 
